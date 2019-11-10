@@ -14,6 +14,6 @@ Examples:
 
 TODO:   
     Debug   
-    Add some new function
+    Add some new functions
       
    
