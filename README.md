@@ -19,7 +19,7 @@ Examples:
 ![](https://github.com/moothes/Image_Comparison_Tool/blob/master/2.PNG)
 
 TODO:  
-Debug  
-Add some new functions
+	Debug  
+	Add some new functions
       
    
