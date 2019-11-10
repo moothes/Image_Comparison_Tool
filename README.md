@@ -1,5 +1,5 @@
 # Image Comparison Tool
-A simple visulization tool that visualize images with same name in different folders. 
+A simple visulization tool that visualizes images with same name in different folders. 
 
 I need to show some superior images in my paper. 
 However, compare images one by one or open several windows at the same time is pretty troublesome.
