@@ -1,5 +1,11 @@
 # Image_Comparison_Tool
-A simple visulization tool that visualize images with same name in different folders.
+A simple visulization tool that visualize images with same name in different folders. 
+
+I need to show some superior images in my paper. 
+However, compare images one by one or open several windows at the same time is pretty troublesome.
+So I wrote this tool that can check several folders at the same time, while switch image only need to press left or right button.
+Hope this can help you write your paper.
+Any suggestion or improvement is welcome.
 
 Usage:  
 1. Run `main.py`  
