@@ -2,11 +2,13 @@ import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
-from load_win import LoadWindow, SetNumber
+from load_win import *
 
 from math import *
+from shutil import *
 import numpy as np
 import os
+from PIL import Image
 
 
 class Example(QMainWindow):
@@ -17,11 +19,11 @@ class Example(QMainWindow):
         self.sh = screenRect.height()
         self.sw = screenRect.width()
         
-        
         self.num_fold = 4
         self.folders = None
         self.img_list = None
         self.num_img = 0
+        self.ex_setting = None
         
         self.listview = None
         self.setWindowTitle('Image Viewer')  
@@ -56,11 +58,22 @@ class Example(QMainWindow):
         #setAct.triggered.connect(self.child_show)
         setAct.triggered.connect(lambda: self.child_show(SetNumber))
         
-        
         loadAct = QAction('Load', self)
         loadAct.setStatusTip('Select image folders')
         #loadAct.triggered.connect(self.child_show)
         loadAct.triggered.connect(lambda: self.child_show(LoadWindow))
+        
+        self.exsetAct = QAction('Export Settings', self)
+        self.exsetAct.setStatusTip('Export the selected images to target folder')
+        self.exsetAct.triggered.connect(lambda: self.child_show(ExportSetting))
+        self.exsetAct.setEnabled(False)
+
+        self.exportAct = QAction('Export', self)
+        self.exportAct.setShortcut("S")
+        self.exportAct.setStatusTip('Export the selected images to target folder')
+        #loadAct.triggered.connect(self.child_show)
+        self.exportAct.triggered.connect(self.export)
+        self.exportAct.setEnabled(False)
 
         exitAct = QAction(QIcon('exit.png'), '&Exit', self)
         #exitAct.setShortcut('Ctrl+Q')
@@ -72,6 +85,8 @@ class Example(QMainWindow):
         fileMenu = menubar.addMenu('&File')
         fileMenu.addAction(setAct)
         fileMenu.addAction(loadAct)
+        fileMenu.addAction(self.exsetAct)
+        fileMenu.addAction(self.exportAct)
         fileMenu.addAction(exitAct)
         
         
@@ -157,10 +172,13 @@ class Example(QMainWindow):
             self.w_load = window(self.num_fold, self.folders, self.img_list, self.num_img)
             self.w_load.window_close_signal.connect(self.get_folds)
             self.w_load.show()
+        elif window.__name__ == 'ExportSetting':
+            self.e_load = window(self.ex_setting, self.folders)
+            self.e_load.getSettings.connect(self.set_export)
+            self.e_load.show()
         
     def set_number(self):
         self.num_fold = self.s_load.num_fold
-        #print(self.num_fold)
         self.initUI()
     
     def get_folds(self):
@@ -177,6 +195,16 @@ class Example(QMainWindow):
         
         self.show_img(self.folders, self.img_list[0])
         self.statusBar().showMessage('Load image complete!')
+        
+        self.exportAct.setEnabled(True)
+        self.exsetAct.setEnabled(True)
+        
+        if self.ex_setting is None:
+            self.ex_setting = {'path': os.path.dirname(self.folders[0]), 'rename': False, 'eps': False}
+
+    def set_export(self):
+        self.ex_setting = self.e_load.result
+        #print(self.ex_setting)
 
     def show_img(self, folds, name):
         assert len(folds) == self.num_fold
@@ -258,6 +286,42 @@ class Example(QMainWindow):
             
             
             self.lbls[i].setPixmap(QPixmap.fromImage(im))
+    
+    def export(self):
+        #print(self.ex_setting)
+        #print('Export image to folder.')
+        main_path = os.path.join(self.ex_setting['path'], 'comparison')
+        if not os.path.exists(main_path):
+            os.mkdir(main_path)
+        
+        for i, fold in enumerate(self.folders):
+            if fold != '':
+                method = fold.split('/')[-1]
+                method_path = os.path.join(main_path, method)
+                if not os.path.exists(method_path):
+                    os.mkdir(method_path)
+                
+                img_name = self.listview.selectedItems()[0].text()
+                src_path = os.path.join(fold, img_name)
+                
+                num_img = len(os.listdir(method_path))
+                img_tag, suffix = img_name.split('.')
+                img_tag = str(num_img) if self.ex_setting['rename'] else img_tag
+                suffix = 'eps' if self.ex_setting['eps'] else suffix
+                img_name = '{}.{}'.format(img_tag, suffix)
+                tar_path = os.path.join(method_path, img_name)
+                
+                if self.ex_setting['eps']:
+                    im = Image.open(src_path)
+                    im.save(tar_path, 'EPS')
+                    #cv2.imwrite(tar_path, im)
+
+                else:
+                    copyfile(src_path, tar_path)
+                #print(i, method, tar_path)
+            
+        #self.ex_setting
+        pass
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

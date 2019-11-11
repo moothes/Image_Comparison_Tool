@@ -3,6 +3,58 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
+class ExportSetting(QWidget):
+    getSettings = pyqtSignal()
+    
+    def __init__(self, settings, folds):
+        super().__init__()
+
+        self.setWindowTitle('Export Settings')
+        assert len(folds) > 0
+        self.default_path = os.path.dirname(folds[0])
+        if settings is None:
+            self.result = {'path': self.default_path, 'rename': False, 'eps': False}
+        else:
+            self.result = settings
+            
+        self.qle = QLineEdit(self)
+        self.qle.setFocusPolicy(Qt.NoFocus)
+        self.qle.setText(self.result['path'])
+        
+        self.btn = QPushButton(self, text="Open")
+        self.btn.clicked.connect(self.open_folder)
+        #btn.clicked.connect(lambda: self.open_folder(i - 1))
+        
+        self.btn.setGeometry( 50, 40,  70, 30)
+        self.qle.setGeometry(145, 40, 250, 30)
+        
+        self.checkBox1 = QCheckBox("rename", self)
+        self.checkBox1.setChecked(self.result['rename'])
+        self.checkBox2 = QCheckBox("to eps", self)
+        self.checkBox2.setChecked(self.result['eps'])
+        
+        self.checkBox1.setGeometry( 50, 90, 90, 30)
+        self.checkBox2.setGeometry(170, 90, 90, 30)
+        
+        btn_close = QPushButton(self, text="Ok")
+        btn_close.clicked.connect(self.close_window)
+        btn_close.setGeometry(170, 140, 70, 30)
+        
+    def open_folder(self):
+        dir_path = QFileDialog.getExistingDirectory(self, "choose directory", "C:/Users/admin/Desktop/")
+        self.qle.setText(dir_path)
+        self.result['path'] = dir_path
+        
+    def close_window(self):
+        #if len(self.qle.text()) < 1:
+        #    return
+        self.result['rename'] = self.checkBox1.isChecked()
+        self.result['eps'] = self.checkBox2.isChecked()
+        self.close()
+
+    def closeEvent(self, event):
+        self.getSettings.emit()
+
 class SetNumber(QWidget):
     set_number = pyqtSignal()
     
