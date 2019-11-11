@@ -1,5 +1,5 @@
 # Image Comparison Tool  
-[中文版使用说明]()  
+[中文版使用说明](https://github.com/moothes/Image_Comparison_Tool/blob/master/readme_cn.md)  
 
 A simple visulization tool that visualizes images with same name in different folders. 
 
