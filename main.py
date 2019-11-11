@@ -38,11 +38,7 @@ class Example(QMainWindow):
         
         self.img_size = 280
         self.pad = 30
-        
- 
-        #print(self.height)
-        #print(self.width)
-        
+
         win_w = 260 + self.col * (self.img_size + self.pad)
         win_h = 80 + self.row * (self.img_size + self.pad)
         self.setGeometry((self.sw - win_w) // 2, (self.sh - win_h) // 2, win_w, win_h)
@@ -204,7 +200,6 @@ class Example(QMainWindow):
 
     def set_export(self):
         self.ex_setting = self.e_load.result
-        #print(self.ex_setting)
 
     def show_img(self, folds, name):
         assert len(folds) == self.num_fold
@@ -288,8 +283,6 @@ class Example(QMainWindow):
             self.lbls[i].setPixmap(QPixmap.fromImage(im))
     
     def export(self):
-        #print(self.ex_setting)
-        #print('Export image to folder.')
         main_path = os.path.join(self.ex_setting['path'], 'comparison')
         if not os.path.exists(main_path):
             os.mkdir(main_path)
@@ -314,14 +307,9 @@ class Example(QMainWindow):
                 if self.ex_setting['eps']:
                     im = Image.open(src_path)
                     im.save(tar_path, 'EPS')
-                    #cv2.imwrite(tar_path, im)
 
                 else:
                     copyfile(src_path, tar_path)
-                #print(i, method, tar_path)
-            
-        #self.ex_setting
-        pass
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
