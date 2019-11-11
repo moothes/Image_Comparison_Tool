@@ -1,4 +1,6 @@
-# Image Comparison Tool
+# Image Comparison Tool  
+[中文版使用说明]()  
+
 A simple visulization tool that visualizes images with same name in different folders. 
 
 I need to show some superior images in my paper. 
