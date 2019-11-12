@@ -2,72 +2,72 @@ import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
-from load_win import *
 
 from math import *
 from shutil import *
 import numpy as np
 import os
 from PIL import Image
+from load_win import *
+from settings import *
 
 
 class Example(QMainWindow):
     def __init__(self):
         super().__init__()
         
+        self.setWindowTitle('Image Viewer')  
         screenRect = QApplication.desktop().screenGeometry()
         self.sh = screenRect.height()
         self.sw = screenRect.width()
-        
-        self.num_fold = 4
-        self.folders = None
-        self.img_list = None
-        self.num_img = 0
-        self.ex_setting = None
+        #self.grabKeyboard()
+
+        self.config = {'num_fold': 4, 'folders': ['',] * 4, 'img_list': [], 'num_img': 0, 'path': '', 'rename': False, 'eps': False}
+        #self.num_fold = 4
+        #self.folders = None
+        #self.img_list = None
+        #self.num_img = 0
+        #self.config = Noneself.config['folders']
         
         self.listview = None
-        self.setWindowTitle('Image Viewer')  
         self.lbls = []
-        self.f_names = []
+        self.method_name = []
+        
         self.initUI()
 
         
     def initUI(self):
-        self.row = floor(sqrt(self.num_fold))
-        self.col = ceil(self.num_fold /self.row)
+        self.row = floor(sqrt(self.config['num_fold']))
+        self.col = ceil(self.config['num_fold'] /self.row)
         
         self.img_size = 280
         self.pad = 30
 
+        # calculate window size
         win_w = 260 + self.col * (self.img_size + self.pad)
         win_h = 80 + self.row * (self.img_size + self.pad)
         self.setGeometry((self.sw - win_w) // 2, (self.sh - win_h) // 2, win_w, win_h)
-        #self.setGeometry(20, 50, win_w, win_h)
-        self.adjustSize()
         self.setFixedSize(win_w, win_h)
         
         self.statusBar().showMessage('Ready!!!')
         
         # main menu
-        setAct = QAction('Setting', self)
+        setAct = QAction('Settings', self)
         setAct.setStatusTip('Set number of folders')
-        #setAct.triggered.connect(self.child_show)
-        setAct.triggered.connect(lambda: self.child_show(SetNumber))
+        setAct.triggered.connect(lambda: self.child_show(Settings))
         
-        loadAct = QAction('Load', self)
+        loadAct = QAction('Set folders', self)
         loadAct.setStatusTip('Select image folders')
-        #loadAct.triggered.connect(self.child_show)
         loadAct.triggered.connect(lambda: self.child_show(LoadWindow))
         
-        self.exsetAct = QAction('Export Settings', self)
-        self.exsetAct.setStatusTip('Export the selected images to target folder')
-        self.exsetAct.triggered.connect(lambda: self.child_show(ExportSetting))
-        self.exsetAct.setEnabled(False)
+        #self.exsetAct = QAction('Export Settings', self)
+        #self.exsetAct.setStatusTip('Export the selected images to target folder')
+        #self.exsetAct.triggered.connect(lambda: self.child_show(ExportSetting))
+        #self.exsetAct.setEnabled(False)
 
-        self.exportAct = QAction('Export', self)
+        self.exportAct = QAction('Export')
         self.exportAct.setShortcut("S")
         self.exportAct.setStatusTip('Export the selected images to target folder')
-        #loadAct.triggered.connect(self.child_show)
         self.exportAct.triggered.connect(self.export)
         self.exportAct.setEnabled(False)
 
@@ -81,7 +81,7 @@ class Example(QMainWindow):
         fileMenu = menubar.addMenu('&File')
         fileMenu.addAction(setAct)
         fileMenu.addAction(loadAct)
-        fileMenu.addAction(self.exsetAct)
+        #fileMenu.addAction(self.exsetAct)
         fileMenu.addAction(self.exportAct)
         fileMenu.addAction(exitAct)
         
@@ -91,15 +91,14 @@ class Example(QMainWindow):
         list_lbl.setText('Image list:')
         
         if self.listview is None:
-            #self.listview.deleteLater()
             self.listview = QListWidget(self)
             self.listview.clicked.connect(self.checkItem)
         self.listview.setGeometry(40, 70, 180, self.row * (self.img_size + self.pad) - self.pad)
         #self.layout().addWidget(self.listview)
         
         old_num = len(self.lbls)
-        if old_num < self.num_fold:
-            for i in range(self.num_fold):
+        if old_num < self.config['num_fold']:
+            for i in range(self.config['num_fold']):
                 if i >= old_num:
                     lbl = QLabel(self)
                     f_name = QLabel(self)
@@ -109,6 +108,7 @@ class Example(QMainWindow):
                                      )
                     lbl.setAlignment(Qt.AlignCenter)
                     lbl.setText('Folder {}'.format(i))
+                    #lbl.setMouseTracking(True)
                     lbl.mouseMoveEvent = self.mouseMove
                     #lbl.installEventFilter(self.mouseMoveEvent(self))
                     #lbl.moved.connect(self.mouseMoveEvent)
@@ -121,14 +121,14 @@ class Example(QMainWindow):
                     f_name.setGeometry(x * (self.img_size + self.pad) + 250, y * (self.img_size + self.pad) + 50, 60, 20)
                     
                     self.lbls.append(lbl)
-                    self.f_names.append(f_name)
+                    self.method_name.append(f_name)
                     
                     self.layout().addWidget(lbl)
                     self.layout().addWidget(f_name)
                 
                 else:
                     lbl = self.lbls[i]
-                    f_name = self.f_names[i]
+                    f_name = self.method_name[i]
                     
                     x = i % self.col
                     y = i // self.col
@@ -139,8 +139,8 @@ class Example(QMainWindow):
         else:
             for i in range(old_num):
                 lbl = self.lbls[i]
-                f_name = self.f_names[i]
-                if i < self.num_fold:
+                f_name = self.method_name[i]
+                if i < self.config['num_fold']:
                     x = i % self.col
                     y = i // self.col
                     lbl.setGeometry(x * (self.img_size + self.pad) + 250, y * (self.img_size + self.pad) + 70, self.img_size, self.img_size)
@@ -151,62 +151,54 @@ class Example(QMainWindow):
                     lbl.deleteLater()
                     f_name.deleteLater()
 
-            self.lbls = self.lbls[:self.num_fold]
-            self.f_names = self.f_names[:self.num_fold]
+            self.lbls = self.lbls[:self.config['num_fold']]
+            self.method_name = self.method_name[:self.config['num_fold']]
         
         self.show()
         
     def checkItem(self, index):
-        self.show_img(self.folders, index.data())
+        #print(index.row(), index.column(), index.data())
+        self.show_img(index.row())
 
     def child_show(self, window):
-        if window.__name__ == 'SetNumber':
-            self.s_load = window(self.num_fold)
-            self.s_load.set_number.connect(self.set_number)
-            self.s_load.show()
-        elif window.__name__ == 'LoadWindow':
-            self.w_load = window(self.num_fold, self.folders, self.img_list, self.num_img)
-            self.w_load.window_close_signal.connect(self.get_folds)
-            self.w_load.show()
-        elif window.__name__ == 'ExportSetting':
-            self.e_load = window(self.ex_setting, self.folders)
-            self.e_load.getSettings.connect(self.set_export)
-            self.e_load.show()
+        if window.__name__ == 'LoadWindow':
+            self.sub_window = window(self.config)
+            self.sub_window.signal.connect(self.get_folds)
+            self.sub_window.show()
+        if window.__name__ == 'Settings':
+            self.sub_window = window(self.config)
+            self.sub_window.signal.connect(self.setting)
+            self.sub_window.show()
         
-    def set_number(self):
-        self.num_fold = self.s_load.num_fold
-        self.initUI()
+        
+    def setting(self, refrash):
+        if refrash:
+            self.initUI()
     
     def get_folds(self):
-        self.folders = self.w_load.folds
-        self.img_list = self.w_load.img_list
-        self.num_img = self.w_load.num_img
-        
-        if self.folders[0] == '' or not self.num_img:
+        if self.config['folders'][0] == '' or not self.config['num_img']:
             return
         
         self.listview.clear()
-        self.listview.addItems(self.img_list)
+        self.listview.addItems(self.config['img_list'])
         self.listview.setCurrentRow(0)
         
-        self.show_img(self.folders, self.img_list[0])
+        self.show_img(0)
         self.statusBar().showMessage('Load image complete!')
         
         self.exportAct.setEnabled(True)
-        self.exsetAct.setEnabled(True)
-        
-        if self.ex_setting is None:
-            self.ex_setting = {'path': os.path.dirname(self.folders[0]), 'rename': False, 'eps': False}
 
-    def set_export(self):
-        self.ex_setting = self.e_load.result
+    def set_export(self, result):
+        self.config.update(result)
 
-    def show_img(self, folds, name):
-        assert len(folds) == self.num_fold
-        for i, fold in enumerate(folds):
+    def show_img(self, idx):
+        name = self.config['img_list'][idx]
+    
+        assert len(self.config['folders']) == self.config['num_fold']
+        for i, fold in enumerate(self.config['folders']):
             if fold == '':
                 continue
-            self.f_names[i].setText(fold.split('/')[-1] + ':')
+            self.method_name[i].setText(fold.split('/')[-1] + ':')
             path = os.path.join(fold, name)
             if not os.path.exists(path):
                 self.lbls[i].setText('No Image!')
@@ -216,53 +208,47 @@ class Example(QMainWindow):
             self.lbls[i].setPixmap(scaledPixmap)
 
     def keyPressEvent(self, event):
+        sel_idx = self.listview.currentRow()
+        if self.config['num_img'] < 1:
+            return
+        
         # 1677723 4-7 左上右下
-        if event.key() == 16777234:
-            # left
-            sel_idx = self.listview.currentRow()
-            if sel_idx > 0:
-                sel_idx -= 1
-            self.show_img(self.folders, self.img_list[sel_idx])
+        key = event.key()
+        if key in [16777234, 16777236]:
+            sel_idx = np.clip(key - 16777235 + sel_idx, 0, self.config['num_img'] - 1)
+            self.show_img(sel_idx)
             self.listview.setCurrentRow(sel_idx)
             
-            msg = 'total image: {}, now: {} .'.format(self.num_img, sel_idx)
-            self.statusBar().showMessage(msg)
-            
-        if event.key() == 16777236:
-            # right
-            sel_idx = self.listview.currentRow()
-            if sel_idx < (self.num_img - 1):
-                sel_idx += 1
-            self.show_img(self.folders, self.img_list[sel_idx])
-            self.listview.setCurrentRow(sel_idx)
-            
-            msg = 'total image: {}, now: {} .'.format(self.num_img, sel_idx)
+            msg = 'total image: {}, now: {} .'.format(self.config['num_img'], sel_idx)
             self.statusBar().showMessage(msg)
 
+        #if event.key() == 83:
+        #    # s
+        #    self.export()
+
     def mouseMove(self, e):
-        x = e.pos().x()
-        y = e.pos().y()
+        if self.config['num_img'] < 1:
+            return
 
         gx = e.globalPos().x()
         gy = e.globalPos().y()
-        ind_x = (gx - 770) // (self.img_size + self.pad) # = x *  + 250+ m 
-        ind_y = (gy - 260) // (self.img_size + self.pad) # + 70 + m
-        index = np.clip(self.col * ind_y + ind_x, 0, self.num_fold-1)
+        ind_x = (gx - 770) // (self.img_size + self.pad)
+        ind_y = (gy - 260) // (self.img_size + self.pad)
+        index = np.clip(self.col * ind_y + ind_x, 0, self.config['num_fold']-1)
         
-        #pix = self.lbls[index].pixmap()
-        #val = pix.toImage().pixel(x, y)
-        #colors = QColor(val).getRgbF()
-        #print(colors)
-        #self.statusBar().showMessage('x: {}, y: {}, Value: {}.'.format(x, y, val))
-        #print(gx, gy, index)
+        x = e.pos().x()
+        y = e.pos().y()
+        x = np.clip(x, 0, self.img_size - 1)
+        y = np.clip(y, 0, self.img_size - 1)
 
-        x = 0 if x < 0 else x
-        y = 0 if y < 0 else y
-        x = self.img_size - 1 if x > self.img_size - 1 else x
-        y = self.img_size - 1 if y > self.img_size - 1 else y
+        pix = self.lbls[index].pixmap()
+        if pix is None:
+            return
+        val = pix.toImage().pixel(x, y)
+        red, green, blue = qRed(val), qGreen(val), qBlue(val)
+        self.statusBar().showMessage('x: {}, y: {}, Value: {}, {}, {}.'.format(x, y, red, green, blue))
 
-
-        for i in range(self.num_fold):
+        for i in range(self.config['num_fold']):
             pix = self.lbls[i].pixmap()
             if pix is None:
                 continue
@@ -279,40 +265,42 @@ class Example(QMainWindow):
             im.setPixel(x+1, y  , value)
             im.setPixel(x+1, y+1, value)
             
-            
             self.lbls[i].setPixmap(QPixmap.fromImage(im))
     
     def export(self):
-        main_path = os.path.join(self.ex_setting['path'], 'comparison')
+        main_path = os.path.join(self.config['path'], 'comparison')
         if not os.path.exists(main_path):
             os.mkdir(main_path)
-        
-        for i, fold in enumerate(self.folders):
+
+        img_name = self.listview.selectedItems()[0].text()
+        for i, fold in enumerate(self.config['folders']):
             if fold != '':
                 method = fold.split('/')[-1]
                 method_path = os.path.join(main_path, method)
                 if not os.path.exists(method_path):
                     os.mkdir(method_path)
                 
-                img_name = self.listview.selectedItems()[0].text()
                 src_path = os.path.join(fold, img_name)
                 
                 num_img = len(os.listdir(method_path))
                 img_tag, suffix = img_name.split('.')
-                img_tag = str(num_img) if self.ex_setting['rename'] else img_tag
-                suffix = 'eps' if self.ex_setting['eps'] else suffix
+                img_tag = str(num_img) if self.config['rename'] else img_tag
+                suffix = 'eps' if self.config['eps'] else suffix
                 img_name = '{}.{}'.format(img_tag, suffix)
                 tar_path = os.path.join(method_path, img_name)
                 
-                if self.ex_setting['eps']:
+                if self.config['eps']:
                     im = Image.open(src_path)
                     im.save(tar_path, 'EPS')
 
                 else:
                     copyfile(src_path, tar_path)
+        
+        msg = 'Image {} has been saved in {}.'.format(img_name, main_path)
+        self.statusBar().showMessage(msg)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setStyle('WindowsXP')
-    ex = Example()
+    ex1 = Example()
     sys.exit(app.exec_())
