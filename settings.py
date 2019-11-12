@@ -138,7 +138,8 @@ class LoadWindow(QWidget):
                 if suffix in ['jpg', 'png', 'bmp']:
                     self.config['img_list'].append(img_name)
             self.config['num_img'] = len(self.config['img_list'])
-            self.config['path'] = os.path.dirname(self.config['folders'][idx])
+            if self.config['path'] == '':
+                self.config['path'] = os.path.dirname(self.config['folders'][idx])
             img_list = self.config['img_list']
         
         self.lbls[idx].setText('toal {} files.'.format(len(img_list)))
