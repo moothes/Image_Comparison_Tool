@@ -20,7 +20,7 @@ class Example(QMainWindow):
         self.sh = screenRect.height()
         self.sw = screenRect.width()
 
-        self.config = {'num_fold': 4, 'row': 2, 'col': 2, 'folders': ['',] * 8, 'img_list': [], 'num_img': 0, 'path': '', 'rename': False, 'eps': False, 'img_size': 280}
+        self.config = {'num_fold': 4, 'row': 2, 'col': 2, 'folders': ['',] * 4, 'img_list': [], 'num_img': 0, 'path': '', 'rename': False, 'eps': False, 'img_size': 280}
         
         self.listview = None
         self.lbls = []
