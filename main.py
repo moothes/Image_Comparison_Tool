@@ -8,7 +8,6 @@ from shutil import *
 import numpy as np
 import os
 from PIL import Image
-from load_win import *
 from settings import *
 
 
@@ -20,32 +19,28 @@ class Example(QMainWindow):
         screenRect = QApplication.desktop().screenGeometry()
         self.sh = screenRect.height()
         self.sw = screenRect.width()
-        #self.grabKeyboard()
 
-        self.config = {'num_fold': 4, 'folders': ['',] * 4, 'img_list': [], 'num_img': 0, 'path': '', 'rename': False, 'eps': False}
-        #self.num_fold = 4
-        #self.folders = None
-        #self.img_list = None
-        #self.num_img = 0
-        #self.config = Noneself.config['folders']
+        self.config = {'num_fold': 4, 'row': 2, 'col': 2, 'folders': ['',] * 8, 'img_list': [], 'num_img': 0, 'path': '', 'rename': False, 'eps': False, 'img_size': 280}
         
         self.listview = None
         self.lbls = []
+        self.open_btn = []
         self.method_name = []
         
         self.initUI()
 
         
     def initUI(self):
-        self.row = floor(sqrt(self.config['num_fold']))
-        self.col = ceil(self.config['num_fold'] /self.row)
+        self.row = self.config['row'] # floor(sqrt(self.config['row']))
+        self.col = self.config['col'] # ceil(self.config['num_fold'] /self.row)
         
-        self.img_size = 280
-        self.pad = 30
+        self.img_size = self.config['img_size'] # 280
+        self.pad_x = 15
+        self.pad_y = self.pad_x + 20
 
         # calculate window size
-        win_w = 260 + self.col * (self.img_size + self.pad)
-        win_h = 80 + self.row * (self.img_size + self.pad)
+        win_w = 260 + self.col * (self.img_size + self.pad_x)
+        win_h = 80 + self.row * (self.img_size + self.pad_y)
         self.setGeometry((self.sw - win_w) // 2, (self.sh - win_h) // 2, win_w, win_h)
         self.setFixedSize(win_w, win_h)
         
@@ -56,9 +51,9 @@ class Example(QMainWindow):
         setAct.setStatusTip('Set number of folders')
         setAct.triggered.connect(lambda: self.child_show(Settings))
         
-        loadAct = QAction('Set folders', self)
-        loadAct.setStatusTip('Select image folders')
-        loadAct.triggered.connect(lambda: self.child_show(LoadWindow))
+        #loadAct = QAction('Set folders', self)
+        #loadAct.setStatusTip('Select image folders')
+        #loadAct.triggered.connect(lambda: self.child_show(LoadWindow))
         
         #self.exsetAct = QAction('Export Settings', self)
         #self.exsetAct.setStatusTip('Export the selected images to target folder')
@@ -80,29 +75,85 @@ class Example(QMainWindow):
         menubar.clear()
         fileMenu = menubar.addMenu('&File')
         fileMenu.addAction(setAct)
-        fileMenu.addAction(loadAct)
+        #fileMenu.addAction(loadAct)
         #fileMenu.addAction(self.exsetAct)
         fileMenu.addAction(self.exportAct)
         fileMenu.addAction(exitAct)
         
         
-        list_lbl = QLabel(self)
-        list_lbl.setGeometry(40, 50, 180, 20)
-        list_lbl.setText('Image list:')
+        self.list_lbl = QLabel(self)
+        self.list_lbl.setGeometry(40, 50, 180, 20)
+        self.list_lbl.setText('Image list:')
         
         if self.listview is None:
             self.listview = QListWidget(self)
             self.listview.clicked.connect(self.checkItem)
-        self.listview.setGeometry(40, 70, 180, self.row * (self.img_size + self.pad) - self.pad)
+        self.listview.setGeometry(40, 70, 180, self.row * (self.img_size + self.pad_y) - self.pad_y)
         #self.layout().addWidget(self.listview)
         
+        for lbl, btn, f_name in zip(self.lbls, self.open_btn, self.method_name):
+            lbl.deleteLater()
+            btn.deleteLater()
+            f_name.deleteLater()
+            
+        self.lbls.clear()
+        self.open_btn.clear()
+        self.method_name.clear()
+        
+        for i in range(self.config['num_fold']):
+            x = i % self.col
+            y = i // self.col
+            
+            f_name = QLabel(self)
+            f_name.setText('Folder {}:'.format(i))
+            f_name.setGeometry(x * (self.img_size + self.pad_x) + 250, y * (self.img_size + self.pad_y) + 40, 100, 25)
+            
+            btn = QPushButton(self, text="Set".format(i))
+            btn.tag = i
+            btn.clicked.connect(self.open_folder)
+            btn.setGeometry(x * (self.img_size + self.pad_x) + 470, y * (self.img_size + self.pad_y) + 40, 60, 25)
+            
+            lbl = QLabel(self)
+            lbl.setStyleSheet("QLabel{background:white;}"
+                              "QLabel{color:rgb(0,0,0,120);font-size:25px;font-weight:bold;font-family:宋体;}"
+                             )
+            lbl.setAlignment(Qt.AlignCenter)
+            lbl.setText('Folder {}'.format(i))
+            #lbl.setMouseTracking(True)
+            lbl.mouseMoveEvent = self.mouseMove
+            #lbl.installEventFilter(self.mouseMoveEvent(self))
+            #lbl.moved.connect(self.mouseMoveEvent)
+            lbl.setGeometry(x * (self.img_size + self.pad_x) + 250, y * (self.img_size + self.pad_y) + 70, self.img_size, self.img_size)
+            
+            
+            self.method_name.append(f_name)
+            self.open_btn.append(btn)
+            self.lbls.append(lbl)
+            #print(len(self.open_btn))
+            
+            #self.layout().addWidget(f_name)
+            self.layout().addWidget(f_name)
+            self.layout().addWidget(btn)
+            self.layout().addWidget(lbl)
+                
+        '''
         old_num = len(self.lbls)
         if old_num < self.config['num_fold']:
             for i in range(self.config['num_fold']):
+                x = i % self.col
+                y = i // self.col
                 if i >= old_num:
-                    lbl = QLabel(self)
-                    f_name = QLabel(self)
                     
+                    f_name = QLabel(self)
+                    f_name.setText('Folder {}:'.format(i))
+                    f_name.setGeometry(x * (self.img_size + self.pad_x) + 250, y * (self.img_size + self.pad_y) + 40, 100, 25)
+                    
+                    btn = QPushButton(self, text="Set".format(i))
+                    btn.tag = i
+                    btn.clicked.connect(self.open_folder)
+                    btn.setGeometry(x * (self.img_size + self.pad_x) + 470, y * (self.img_size + self.pad_y) + 40, 60, 25)
+                    
+                    lbl = QLabel(self)
                     lbl.setStyleSheet("QLabel{background:white;}"
                                       "QLabel{color:rgb(0,0,0,120);font-size:25px;font-weight:bold;font-family:宋体;}"
                                      )
@@ -112,47 +163,51 @@ class Example(QMainWindow):
                     lbl.mouseMoveEvent = self.mouseMove
                     #lbl.installEventFilter(self.mouseMoveEvent(self))
                     #lbl.moved.connect(self.mouseMoveEvent)
+                    lbl.setGeometry(x * (self.img_size + self.pad_x) + 250, y * (self.img_size + self.pad_y) + 70, self.img_size, self.img_size)
                     
-                    x = i % self.col
-                    y = i // self.col
-                    lbl.setGeometry(x * (self.img_size + self.pad) + 250, y * (self.img_size + self.pad) + 70, self.img_size, self.img_size)
                     
-                    f_name.setText('Folder {}:'.format(i))
-                    f_name.setGeometry(x * (self.img_size + self.pad) + 250, y * (self.img_size + self.pad) + 50, 60, 20)
-                    
-                    self.lbls.append(lbl)
                     self.method_name.append(f_name)
+                    self.open_btn.append(btn)
+                    self.lbls.append(lbl)
+                    print(len(self.open_btn))
                     
-                    self.layout().addWidget(lbl)
+                    #self.layout().addWidget(f_name)
                     self.layout().addWidget(f_name)
+                    self.layout().addWidget(btn)
+                    self.layout().addWidget(lbl)
                 
                 else:
                     lbl = self.lbls[i]
+                    btn = self.open_btn[i]
                     f_name = self.method_name[i]
                     
-                    x = i % self.col
-                    y = i // self.col
-                    lbl.setGeometry(x * (self.img_size + self.pad) + 250, y * (self.img_size + self.pad) + 70, self.img_size, self.img_size)
+                    lbl.setGeometry(x * (self.img_size + self.pad_x) + 250, y * (self.img_size + self.pad_y) + 70, self.img_size, self.img_size)
+                    
+                    btn.setGeometry(x * (self.img_size + self.pad_x) + 470, y * (self.img_size + self.pad_y) + 40, 60, 25)
                     
                     f_name.setText('Folder {}:'.format(i))
-                    f_name.setGeometry(x * (self.img_size + self.pad) + 250, y * (self.img_size + self.pad) + 50, 60, 20)
+                    f_name.setGeometry(x * (self.img_size + self.pad_x) + 250, y * (self.img_size + self.pad_y) + 40, 60, 25)
         else:
             for i in range(old_num):
                 lbl = self.lbls[i]
+                btn = self.open_btn[i]
                 f_name = self.method_name[i]
                 if i < self.config['num_fold']:
                     x = i % self.col
                     y = i // self.col
-                    lbl.setGeometry(x * (self.img_size + self.pad) + 250, y * (self.img_size + self.pad) + 70, self.img_size, self.img_size)
+                    lbl.setGeometry(x * (self.img_size + self.pad_x) + 250, y * (self.img_size + self.pad_y) + 70, self.img_size, self.img_size)
+                    btn.setGeometry(x * (self.img_size + self.pad_x) + 470, y * (self.img_size + self.pad_y) + 40, 60, 25)
                     
                     f_name.setText('Folder {}:'.format(i))
-                    f_name.setGeometry(x * (self.img_size + self.pad) + 250, y * (self.img_size + self.pad) + 50, 60, 20)
+                    f_name.setGeometry(x * (self.img_size + self.pad_x) + 250, y * (self.img_size + self.pad_y) + 50, 60, 20)
                 else:
                     lbl.deleteLater()
+                    btn.deleteLater()
                     f_name.deleteLater()
 
             self.lbls = self.lbls[:self.config['num_fold']]
             self.method_name = self.method_name[:self.config['num_fold']]
+        '''
         
         self.show()
         
@@ -161,20 +216,20 @@ class Example(QMainWindow):
         self.show_img(index.row())
 
     def child_show(self, window):
-        if window.__name__ == 'LoadWindow':
-            self.sub_window = window(self.config)
-            self.sub_window.signal.connect(self.get_folds)
-            self.sub_window.show()
+        self.sub_window = window(self.config)
+        #if window.__name__ == 'LoadWindow':
+        #    self.sub_window.signal.connect(self.get_folds)
         if window.__name__ == 'Settings':
-            self.sub_window = window(self.config)
             self.sub_window.signal.connect(self.setting)
-            self.sub_window.show()
+            
+        self.sub_window.show()
         
         
     def setting(self, refrash):
         if refrash:
             self.initUI()
-    
+            
+    '''
     def get_folds(self):
         if self.config['folders'][0] == '' or not self.config['num_img']:
             return
@@ -187,6 +242,39 @@ class Example(QMainWindow):
         self.statusBar().showMessage('Load image complete!')
         
         self.exportAct.setEnabled(True)
+    '''
+    
+    def open_folder(self):
+        idx = self.sender().tag
+        dir_path = QFileDialog.getExistingDirectory(self, "choose directory", "C:/Users/admin/Desktop/debug1/debug")
+        if not os.path.exists(dir_path):
+            return
+        self.method_name[idx].setText(dir_path.split('/')[-1])
+        self.config['folders'][idx] = dir_path
+        
+        img_list = os.listdir(dir_path)
+        if not idx:
+            self.config['img_list'] = []
+            for img_name in img_list:
+                suffix = img_name.split('.')[-1]
+                if suffix in ['jpg', 'png', 'bmp']:
+                    self.config['img_list'].append(img_name)
+            self.config['num_img'] = len(self.config['img_list'])
+            self.list_lbl.setText('Total {} images: '.format(self.config['num_img']))
+            if self.config['path'] == '':
+                self.config['path'] = os.path.dirname(self.config['folders'][idx])
+            #img_list = self.config['img_list']
+            
+            self.show_img(0)
+            self.listview.clear()
+            self.listview.addItems(self.config['img_list'])
+            self.listview.setCurrentRow(0)
+            self.exportAct.setEnabled(True)
+        else:
+            sel_idx = self.listview.currentRow()
+            self.show_img(sel_idx)
+        
+        self.statusBar().showMessage('Load image complete!')
 
     def set_export(self, result):
         self.config.update(result)
@@ -232,8 +320,8 @@ class Example(QMainWindow):
 
         gx = e.globalPos().x()
         gy = e.globalPos().y()
-        ind_x = (gx - 770) // (self.img_size + self.pad)
-        ind_y = (gy - 260) // (self.img_size + self.pad)
+        ind_x = (gx - 770) // (self.img_size + self.pad_x)
+        ind_y = (gy - 260) // (self.img_size + self.pad_x)
         index = np.clip(self.col * ind_y + ind_x, 0, self.config['num_fold']-1)
         
         x = e.pos().x()
@@ -275,7 +363,7 @@ class Example(QMainWindow):
         img_name = self.listview.selectedItems()[0].text()
         for i, fold in enumerate(self.config['folders']):
             if fold != '':
-                method = fold.split('/')[-1]
+                method = fold.split('/')[-2]
                 method_path = os.path.join(main_path, method)
                 if not os.path.exists(method_path):
                     os.mkdir(method_path)
@@ -286,8 +374,8 @@ class Example(QMainWindow):
                 img_tag, suffix = img_name.split('.')
                 img_tag = str(num_img) if self.config['rename'] else img_tag
                 suffix = 'eps' if self.config['eps'] else suffix
-                img_name = '{}.{}'.format(img_tag, suffix)
-                tar_path = os.path.join(method_path, img_name)
+                new_name = '{}.{}'.format(img_tag, suffix)
+                tar_path = os.path.join(method_path, new_name)
                 
                 if self.config['eps']:
                     im = Image.open(src_path)
