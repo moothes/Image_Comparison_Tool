@@ -1,12 +1,12 @@
 # Image Comparison Tool  
 [中文版使用说明](https://github.com/moothes/Image_Comparison_Tool/blob/master/readme_cn.md)  
 
-A simple visulization tool that visualizes images with same name in different folders. 
+A simple tool that visualizes images with the same name in different folders. 
 
 I need to show some superior images in my paper. 
-However, comparing images one by one or opening several windows at the same time is pretty troublesome.
+However, comparing images one by one or opening several windows at the same time is troublesome.
 So I wrote this tool that can check several folders at the same time, while switching images only need to press left or right button.
-Hope this can help you write your paper.
+Hope this can help you writing your paper.
 Any suggestion or improvement is welcome.
 
 Usage:  
