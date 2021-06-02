@@ -1,5 +1,6 @@
 图片可视化工具文档  
 ===
+[English version](https://github.com/moothes/Image_Comparison_Tool/blob/master/readme_en.md)  
 
 主要用于对比多个文件夹的图片。 
 
