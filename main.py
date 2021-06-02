@@ -26,6 +26,7 @@ class Example(QMainWindow):
         self.lbls = []
         self.open_btn = []
         self.method_name = []
+        self.suffix = ['png', 'jpg']
         
         self.initUI()
 
@@ -287,13 +288,21 @@ class Example(QMainWindow):
             if fold == '':
                 continue
             self.method_name[i].setText(fold.split('/')[-1] + ':')
-            path = os.path.join(fold, name)
-            if not os.path.exists(path):
-                self.lbls[i].setText('No Image!')
-                continue
             
-            scaledPixmap = QPixmap(path).scaled(QSize(self.img_size, self.img_size))
-            self.lbls[i].setPixmap(scaledPixmap)
+            find = False
+            tag = name.split('.')[0]
+            for suf in self.suffix:
+                new_name = '.'.join([tag, suf])
+                path = os.path.join(fold, new_name)
+                if os.path.exists(path):
+                    find = True
+                    break
+            
+            if not find:
+                self.lbls[i].setText('No Image!')
+            else:
+                scaledPixmap = QPixmap(path).scaled(QSize(self.img_size, self.img_size))
+                self.lbls[i].setPixmap(scaledPixmap)
 
     def keyPressEvent(self, event):
         sel_idx = self.listview.currentRow()
@@ -363,26 +372,37 @@ class Example(QMainWindow):
         img_name = self.listview.selectedItems()[0].text()
         for i, fold in enumerate(self.config['folders']):
             if fold != '':
-                method = fold.split('/')[-2]
+                method = fold.split('/')[-1]
                 method_path = os.path.join(main_path, method)
                 if not os.path.exists(method_path):
                     os.mkdir(method_path)
+                #print(method_path)
                 
-                src_path = os.path.join(fold, img_name)
+                find = False
+                tag = img_name.split('.')[0]
+                for suf in self.suffix:
+                    new_name = '.'.join([tag, suf])
+                    path = os.path.join(fold, new_name)
+                    if os.path.exists(path):
+                        find = True
+                        break
                 
-                num_img = len(os.listdir(method_path))
-                img_tag, suffix = img_name.split('.')
-                img_tag = str(num_img) if self.config['rename'] else img_tag
-                suffix = 'eps' if self.config['eps'] else suffix
-                new_name = '{}.{}'.format(img_tag, suffix)
-                tar_path = os.path.join(method_path, new_name)
-                
-                if self.config['eps']:
-                    im = Image.open(src_path)
-                    im.save(tar_path, 'EPS')
+                if find:
+                    src_path = path #os.path.join(fold, img_name)
+                    
+                    num_img = len(os.listdir(method_path))
+                    img_tag, suffix = img_name.split('.')
+                    img_tag = str(num_img) if self.config['rename'] else img_tag
+                    suffix = 'eps' if self.config['eps'] else suffix
+                    new_name = '{}.{}'.format(img_tag, suffix)
+                    tar_path = os.path.join(method_path, new_name)
+                    
+                    if self.config['eps']:
+                        im = Image.open(src_path)
+                        im.save(tar_path, 'EPS')
 
-                else:
-                    copyfile(src_path, tar_path)
+                    else:
+                        copyfile(src_path, tar_path)
         
         msg = 'Image {} has been saved in {}.'.format(img_name, main_path)
         self.statusBar().showMessage(msg)
