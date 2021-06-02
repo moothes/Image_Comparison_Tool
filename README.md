@@ -1,28 +1,41 @@
 # Image Comparison Tool  
 [中文版使用说明](https://github.com/moothes/Image_Comparison_Tool/blob/master/readme_cn.md)  
 
-A simple tool that visualizes images with the same name in different folders. 
+This tool is developed to compare different results on the same dataset.
 
-I need to show some superior images in my paper. 
-However, comparing images one by one or opening several windows at the same time is troublesome.
-So I wrote this tool that can check several folders at the same time, while switching images only need to press left or right button.
-Hope this can help you writing your paper.
-Any suggestion or improvement is welcome.
+How to use:  
+----
+* The first item in menu bar is the setting window. It looks like：  
+![](https://github.com/moothes/Image_Comparison_Tool/blob/master/setting.PNG)  
+"Folders": Number of folders as N rows and M columns；  
+"Save_path": Image save path；  
+"Rename": Renaming the saved images follows 1,2,3... order;  
+"eps": Convert the saved images to '.eps'.
+* After settings, the main page looks like：  
+![](https://github.com/moothes/Image_Comparison_Tool/blob/master/main.PNG)  
+The "set" button on the top right corner of each grid is used to set the folder path; 
+The image list shows the image files in the first folder, so it **must** be set firstly;   
+"Left" or "Right" button on the keyboard can control the previous or next image;  
+"S" button can save the current image;  
+You can draw on any image, while is will show on the same position of other images too.  
 
-Usage:  
-1. Run `main.py`  
-2. Set the number of folders in the menuscript (default 4, max 15). Theoretically, there is no restriction of the number of folders. However, if it larger than or equal with 16, the window will be too large to operate.  
-3. Load Image folders (**This first folder is considered as the main folder**)  
-4. Press '←' or '→' can move to previous or next image  
-5. Click one of the shown images can draw yellow points in all subfigure  
-6. Press 'S' to save current images, settings are locate in the main menu, including save path, rename image and convert to eps file.
-       
-Examples:  
-![](https://github.com/moothes/Image_Comparison_Tool/blob/master/1.PNG)
-![](https://github.com/moothes/Image_Comparison_Tool/blob/master/2.PNG)
+**Warning**
+It is recommend to named the folder using the method’s name, otherwise the save results may be wrong.
+Image names in different folders should be the same.
 
-TODO:  
-	Debug  
-	Add some new functions
-      
-   
+Recommended folder structure：
+----
+* Folder
+  * method 1
+    * img_1.jpg
+    * img_2.jpg 
+    * ...
+    * img_n.jpg 
+  * method 2
+    * img_1.png
+    * img_2.png 
+    * ...
+    * img_n.png 
+  * ...
+
+**If you have any advice or bug, please contact me.**
