@@ -1,5 +1,5 @@
 # Image Comparison Tool  
-[中文版使用说明](https://github.com/moothes/Image_Comparison_Tool/blob/master/readme_cn.md)  
+[中文版使用说明](https://github.com/moothes/Image_Comparison_Tool/blob/master/readme.md)  
 
 This tool is developed to compare different results on the same dataset.
 
