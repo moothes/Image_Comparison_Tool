@@ -6,15 +6,11 @@
 
 使用方法概述：  
 ----
-* 菜单栏第一项是设置.如下图：  
-![](https://github.com/moothes/Image_Comparison_Tool/blob/master/setting.PNG)  
-Folders是设置展示的文件夹数量，n行m列；  
-Save_path设置保存图片路径；  
-Rename是保存时对图片按照1，2，3的顺序重新命名；  
-eps时指保存成eps格式。
+Blocks是设置展示的文件夹数量，可以动态调整；  
+Save_path设置保存图片路径。
 * 完成设置后，主页面如下图：  
-![](https://github.com/moothes/Image_Comparison_Tool/blob/master/main.PNG)  
-每个小图片右上角的set是设置文件夹，第一个图片必须要设置，用于加载图片列表;  
+![](https://github.com/moothes/Image_Comparison_Tool/blob/master/image.PNG)  
+每个小图片右上角的set是设置文件夹，第一个图片必须要设置，用于加载图片列表和计算IOU;  
 键盘的左右键可以控制上下一张图片。选取图片后，可用键盘上的“S”键保存到Save_path; 
 在任意一张图片上进行点击可以画图，同时在其它所有图片上相同位置也会画出来  
 
