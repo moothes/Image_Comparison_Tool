@@ -33,10 +33,7 @@ class Example(QMainWindow):
         self.show()
 
         
-    def initUI(self):
-        #self.row = self.config['row'] # floor(sqrt(self.config['row']))
-        #self.col = self.config['col'] # ceil(self.config['num_fold'] /self.row)
-        
+    def initUI(self):        
         self.row = floor(sqrt(self.config['num_fold']))
         self.col = ceil(self.config['num_fold'] / 1. / self.row)
         
@@ -171,6 +168,7 @@ class Example(QMainWindow):
     def change(self):
     
         self.config['num_fold'] = int(self.le_num.text())
+        self.config['folders'] = ['',] * self.config['num_fold']
         
         self.row = floor(sqrt(self.config['num_fold']))
         self.col = ceil(self.config['num_fold'] / 1. / self.row)
@@ -294,6 +292,7 @@ class Example(QMainWindow):
     def show_img(self, idx):
         name = self.config['img_list'][idx]
     
+        print(len(self.config['folders']), self.config['num_fold'])
         assert len(self.config['folders']) == self.config['num_fold']
         for i, fold in enumerate(self.config['folders']):
             if fold == '':
